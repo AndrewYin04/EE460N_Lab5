@@ -1,0 +1,133 @@
+.ORIG x1000
+; System Pages (0-23)
+.FILL b0000000000000100 ; page 0 frame 0, protected
+.FILL b0000001000000100 ; page 1 frame 1, protected
+.FILL b0000010000000100 ; page 2 frame 2, protected
+.FILL b0000011000000100 ; page 3 frame 3, protected
+.FILL b0000100000000100 ; page 4 frame 4, protected
+.FILL b0000101000000100 ; page 5 frame 5, protected
+.FILL b0000110000000100 ; page 6 frame 6, protected
+.FILL b0000111000000100 ; page 7 frame 7, protected
+.FILL b0001000000000100 ; page 8 frame 8, protected
+.FILL b0001001000000100 ; page 9 frame 9, protected
+.FILL b0001010000000100 ; page 10 frame 10, protected
+.FILL b0001011000000100 ; page 11 frame 11, protected
+.FILL b0001100000000100 ; page 12 frame 12, protected
+.FILL b0001101000000100 ; page 13 frame 13, protected
+.FILL b0001110000000100 ; page 14 frame 14, protected
+.FILL b0001111000000100 ; page 15 frame 15, protected
+.FILL b0010000000000100 ; page 16 frame 16, protected
+.FILL b0010001000000100 ; page 17 frame 17, protected
+.FILL b0010010000000100 ; page 18 frame 18, protected
+.FILL b0010011000000100 ; page 19 frame 19, protected
+.FILL b0010100000000100 ; page 20 frame 20, protected
+.FILL b0010101000000100 ; page 21 frame 21, protected
+.FILL b0010110000000100 ; page 22 frame 22, protected
+.FILL b0010111000000100 ; page 23 frame 23, protected
+
+; User Pages (24-127)
+.FILL b0011001000001100 ; page 24 frame 25, unprotected, valid
+.FILL b0000000000000000 ; page 25 invalid
+.FILL b0000000000000000 ; page 26 invalid
+.FILL b0000000000000000 ; page 27 invalid
+.FILL b0000000000000000 ; page 28 invalid
+.FILL b0000000000000000 ; page 29 invalid
+.FILL b0000000000000000 ; page 30 invalid
+.FILL b0000000000000000 ; page 31 invalid
+.FILL b0000000000000000 ; page 32 invalid
+.FILL b0000000000000000 ; page 33 invalid
+.FILL b0000000000000000 ; page 34 invalid
+.FILL b0000000000000000 ; page 35 invalid
+.FILL b0000000000000000 ; page 36 invalid
+.FILL b0000000000000000 ; page 37 invalid
+.FILL b0000000000000000 ; page 38 invalid
+.FILL b0000000000000000 ; page 39 invalid
+.FILL b0000000000000000 ; page 40 invalid
+.FILL b0000000000000000 ; page 41 invalid
+.FILL b0000000000000000 ; page 42 invalid
+.FILL b0000000000000000 ; page 43 invalid
+.FILL b0000000000000000 ; page 44 invalid
+.FILL b0000000000000000 ; page 45 invalid
+.FILL b0000000000000000 ; page 46 invalid
+.FILL b0000000000000000 ; page 47 invalid
+.FILL b0000000000000000 ; page 48 invalid
+.FILL b0000000000000000 ; page 49 invalid
+.FILL b0000000000000000 ; page 50 invalid
+.FILL b0000000000000000 ; page 51 invalid
+.FILL b0000000000000000 ; page 52 invalid
+.FILL b0000000000000000 ; page 53 invalid
+.FILL b0000000000000000 ; page 54 invalid
+.FILL b0000000000000000 ; page 55 invalid
+.FILL b0000000000000000 ; page 56 invalid
+.FILL b0000000000000000 ; page 57 invalid
+.FILL b0000000000000000 ; page 58 invalid
+.FILL b0000000000000000 ; page 59 invalid
+.FILL b0000000000000000 ; page 60 invalid
+.FILL b0000000000000000 ; page 61 invalid
+.FILL b0000000000000000 ; page 62 invalid
+.FILL b0000000000000000 ; page 63 invalid
+.FILL b0000000000000000 ; page 64 invalid
+.FILL b0000000000000000 ; page 65 invalid
+.FILL b0000000000000000 ; page 66 invalid
+.FILL b0000000000000000 ; page 67 invalid
+.FILL b0000000000000000 ; page 68 invalid
+.FILL b0000000000000000 ; page 69 invalid
+.FILL b0000000000000000 ; page 70 invalid
+.FILL b0000000000000000 ; page 71 invalid
+.FILL b0000000000000000 ; page 72 invalid
+.FILL b0000000000000000 ; page 73 invalid
+.FILL b0000000000000000 ; page 74 invalid
+.FILL b0000000000000000 ; page 75 invalid
+.FILL b0000000000000000 ; page 76 invalid
+.FILL b0000000000000000 ; page 77 invalid
+.FILL b0000000000000000 ; page 78 invalid
+.FILL b0000000000000000 ; page 79 invalid
+.FILL b0000000000000000 ; page 80 invalid
+.FILL b0000000000000000 ; page 81 invalid
+.FILL b0000000000000000 ; page 82 invalid
+.FILL b0000000000000000 ; page 83 invalid
+.FILL b0000000000000000 ; page 84 invalid
+.FILL b0000000000000000 ; page 85 invalid
+.FILL b0000000000000000 ; page 86 invalid
+.FILL b0000000000000000 ; page 87 invalid
+.FILL b0000000000000000 ; page 88 invalid
+.FILL b0000000000000000 ; page 89 invalid
+.FILL b0000000000000000 ; page 90 invalid
+.FILL b0000000000000000 ; page 91 invalid
+.FILL b0000000000000000 ; page 92 invalid
+.FILL b0000000000000000 ; page 93 invalid
+.FILL b0000000000000000 ; page 94 invalid
+.FILL b0000000000000000 ; page 95 invalid
+.FILL b0011100000001100 ; page 96 frame 28, unprotected, valid
+.FILL b0000000000000000 ; page 97 invalid
+.FILL b0000000000000000 ; page 98 invalid
+.FILL b0000000000000000 ; page 99 invalid
+.FILL b0000000000000000 ; page 100 invalid
+.FILL b0000000000000000 ; page 101 invalid
+.FILL b0000000000000000 ; page 102 invalid
+.FILL b0000000000000000 ; page 103 invalid
+.FILL b0000000000000000 ; page 104 invalid
+.FILL b0000000000000000 ; page 105 invalid
+.FILL b0000000000000000 ; page 106 invalid
+.FILL b0000000000000000 ; page 107 invalid
+.FILL b0000000000000000 ; page 108 invalid
+.FILL b0000000000000000 ; page 109 invalid
+.FILL b0000000000000000 ; page 110 invalid
+.FILL b0000000000000000 ; page 111 invalid
+.FILL b0000000000000000 ; page 112 invalid
+.FILL b0000000000000000 ; page 113 invalid
+.FILL b0000000000000000 ; page 114 invalid
+.FILL b0000000000000000 ; page 115 invalid
+.FILL b0000000000000000 ; page 116 invalid
+.FILL b0000000000000000 ; page 117 invalid
+.FILL b0000000000000000 ; page 118 invalid
+.FILL b0000000000000000 ; page 119 invalid
+.FILL b0000000000000000 ; page 120 invalid
+.FILL b0000000000000000 ; page 121 invalid
+.FILL b0000000000000000 ; page 122 invalid
+.FILL b0000000000000000 ; page 123 invalid
+.FILL b0000000000000000 ; page 124 invalid
+.FILL b0000000000000000 ; page 125 invalid
+.FILL b0011101000001100 ; page 126 frame 29, unprotected, valid
+.FILL b0000000000000000 ; page 127 invalid
+.END
