@@ -1,0 +1,8 @@
+.ORIG x1000
+LEA R0, HI
+LDW R1, R0, x0
+HALT
+
+HI .FILL x0001
+
+.END

@@ -11,7 +11,7 @@ MICROCODE_FILE=$1
 shift
 
 # Compile the C program
-gcc -lm -std=c99 -o simulate lc3bsim4.c
+gcc -lm -std=c99 -o simulate lc3bsim5.c
 if [ $? -ne 0 ]; then
     echo "Compilation failed."
     exit 1
