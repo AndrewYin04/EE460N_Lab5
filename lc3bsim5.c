@@ -98,6 +98,18 @@ enum CS_BITS {
     GateVector,
     LD_Vector,
     VectorMUX1, VectorMUX0,
+    GateMAR,
+    LDMARMUX,
+    GateTranslation,
+    TranslationMUX,
+    LD_VA,
+    LD_PTBR,
+    SNSMUX,
+    LD_SNS,
+    LD_AV,
+    CHK_SNS,
+    CHK_AV,
+    MDRMUX,
     CONTROL_STORE_BITS
 } CS_BITS;
 
@@ -150,6 +162,18 @@ int GetGateVector(int *x)   { return (x[GateVector]); }
 int GetLD_Vector(int *x)    { return (x[LD_Vector]); }
 int GetVectorMUX(int *x)    { return ((x[VectorMUX1] << 1) + x[VectorMUX0]); }
 /* MODIFY: you can add more Get functions for your new control signals */
+int GetGateMAR(int *x)       { return (x[GateMAR]); }
+int GetLDMARMUX(int *x)      { return (x[LDMARMUX]); }
+int GetGateTranslation(int *x) { return (x[GateTranslation]); }
+int GetTranslationMUX(int *x) { return (x[TranslationMUX]); }
+int GetLD_VA(int *x)          { return (x[LD_VA]); }
+int GetLD_PTBR(int *x)        { return (x[LD_PTBR]); }
+int GetSNSMUX(int *x)         { return (x[SNSMUX]); }
+int GetLD_SNS(int *x)         { return (x[LD_SNS]); }
+int GetLD_AV(int *x)          { return (x[LD_AV]); }
+int GetCHK_SNS(int *x)        { return (x[CHK_SNS]); }
+int GetCHK_AV(int *x)         { return (x[CHK_AV]); }
+int GetMDRMUX(int *x)         { return (x[MDRMUX]); }
 
 /***************************************************************/
 /* The control store rom.                                      */
