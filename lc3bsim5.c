@@ -242,6 +242,8 @@ typedef struct System_Latches_Struct{
     int PTBR; /* This is initialized when we load the page table */
     int VA;   /* Temporary VA register */
 /* MODIFY: you should add here any other registers you need to implement virtual memory */
+    int AV; /* Access violation signal */
+    int SNS_Saved_Next_State;
 
 } System_Latches;
 
@@ -711,14 +713,23 @@ void eval_micro_sequencer() {
     int INT = CURRENT_LATCHES.INTERRUPT;
     int PSR15 = CURRENT_LATCHES.Privilege;
 
+    int SNS = CURRENT_LATCHES.SNS_Saved_Next_State;
+    int chk_av = GetCHK_AV(CURRENT_LATCHES.MICROINSTRUCTION);
+    int av = CURRENT_LATCHES.AV;
+    int chk_sns = GetCHK_SNS(CURRENT_LATCHES.MICROINSTRUCTION);
+    int ld_mar = GetLD_MAR(CURRENT_LATCHES.MICROINSTRUCTION);
+
     // load next_latches's state number
 //    if (IRD == 0) {
 //        NEXT_LATCHES.STATE_NUMBER = (j) | ((cond & 0b01) & ((cond & 0b010) >> 1) & IR11) | (((cond & 0b01) & (((cond & 0b010) ^ 0b010) >> 1) & R) << 1) | ((((cond & 0b01) ^ 0b01) & ((cond & 0b010) >> 1) & ben) << 2);
 //    } else { // if IRD == 1
 //        NEXT_LATCHES.STATE_NUMBER = (CURRENT_LATCHES.IR & 0x0F000) >> 12;
 //    }
-
-    if ((mv & chk_mv) | (((IR15_12 == 0b01010) || (IR15_12 == 0b01011)) && chk_iop)) {
+    if (chk_sns == 1) {
+        NEXT_LATCHES.STATE_NUMBER = SNS;
+    } else if ((ld_mar == 1) && (!((j == 33) && INT)) && (j != 61)) {
+        NEXT_LATCHES.STATE_NUMBER = 35;
+    } else if ((mv & chk_mv) || (((IR15_12 == 0b01010) || (IR15_12 == 0b01011)) && chk_iop) || (av && chk_av)) {
         NEXT_LATCHES.STATE_NUMBER = 49;
     } else if (IRD == 1) {
         NEXT_LATCHES.STATE_NUMBER = (CURRENT_LATCHES.IR & 0x0F000) >> 12;
@@ -736,6 +747,8 @@ void eval_micro_sequencer() {
         } else if ((cond == 5) && INT) {
             NEXT_LATCHES.STATE_NUMBER = j | (INT << 4);
             NEXT_LATCHES.INTERRUPT = 0;
+        } else if ((cond == 6) && ((SNS == 23) || (SNS == 57) || (SNS == 41) || (SNS == 46))) {
+            NEXT_LATCHES.STATE_NUMBER = j | (0b01 << 5);
         } else {
             NEXT_LATCHES.STATE_NUMBER = j;
         }
@@ -841,6 +854,8 @@ void eval_bus_drivers() {
     int Gate_PC_1 = GetGatePC_1(CURRENT_LATCHES.MICROINSTRUCTION);
     int Gate_PSR = GetGatePSR(CURRENT_LATCHES.MICROINSTRUCTION);
     int Gate_Vector = GetGateVector(CURRENT_LATCHES.MICROINSTRUCTION);
+    int Gate_MAR = GetGateMAR(CURRENT_LATCHES.MICROINSTRUCTION);
+    int Gate_Translation = GetGateTranslation(CURRENT_LATCHES.MICROINSTRUCTION);
 
     if (Gate_MARMUX) {
         int marmux = GetMARMUX(CURRENT_LATCHES.MICROINSTRUCTION);
@@ -1006,6 +1021,24 @@ void eval_bus_drivers() {
         } else { // word; LDW
             BUS = Low16bits(MDR);
         }
+    } else if (Gate_MAR) {
+        BUS = Low16bits(CURRENT_LATCHES.MAR);
+    } else if (Gate_Translation) {
+        int va = CURRENT_LATCHES.VA;
+        int ptbr = CURRENT_LATCHES.PTBR;
+
+        int translationMux = GetTranslationMUX(CURRENT_LATCHES.MICROINSTRUCTION);
+
+        if (translationMux == 0) {
+            BUS = Low16bits(ptbr);
+        } else if (translationMux == 1) {
+            int vpn = (va >> 9) & 0b01111111;
+            BUS = Low16bits(ptbr + (vpn << 1));
+        } else if (translationMux == 2) {
+            BUS = Low16bits(va);
+        } else {
+            BUS = 0x0;
+        }
     } else {
         BUS = 0x0;
     }
@@ -1042,6 +1075,34 @@ void latch_datapath_values() {
     int LD_MV = GetLD_MV(CURRENT_LATCHES.MICROINSTRUCTION);
     int LD_Priv = GetLD_Priv(CURRENT_LATCHES.MICROINSTRUCTION);
     int LD_Vector = GetLD_Vector(CURRENT_LATCHES.MICROINSTRUCTION);
+
+    int LD_AV = GetLD_AV(CURRENT_LATCHES.MICROINSTRUCTION);
+    int LD_VA = GetLD_VA(CURRENT_LATCHES.MICROINSTRUCTION);
+    int LD_PTBR = GetLD_PTBR((CURRENT_LATCHES.MICROINSTRUCTION));
+    int LD_SNS = GetLD_SNS(CURRENT_LATCHES.MICROINSTRUCTION);
+
+    if (LD_AV) {
+        int protection = (((CURRENT_LATCHES.Privilege == 1) && ((CURRENT_LATCHES.MDR & 0b01000) == 0) && (CURRENT_LATCHES.SNS_Saved_Next_State != 28))) & 0b01;
+        int valid = (!((CURRENT_LATCHES.MDR >> 2) & 0b01)) & 0b01;
+        NEXT_LATCHES.AV = protection | valid;
+    }
+
+    if (LD_VA) {
+        NEXT_LATCHES.VA = BUS;
+    }
+
+    if (LD_PTBR) {
+        NEXT_LATCHES.PTBR = BUS;
+    }
+
+    if (LD_SNS) {
+        int snsmux = GetSNSMUX(CURRENT_LATCHES.MICROINSTRUCTION);
+        if (snsmux == 0) {
+            NEXT_LATCHES.SNS_Saved_Next_State = GetJ(CURRENT_LATCHES.MICROINSTRUCTION);
+        } else {
+            NEXT_LATCHES.SNS_Saved_Next_State = 0;
+        }
+    }
 
     if (LD_SavedSSP) {
         NEXT_LATCHES.Saved_SSP = CURRENT_LATCHES.REGS[0b0110];
