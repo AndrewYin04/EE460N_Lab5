@@ -101,7 +101,7 @@ enum CS_BITS {
     GateMAR,
     LDMARMUX,
     GateTranslation,
-    TranslationMUX,
+    TranslationMUX1, TranslationMUX0,
     LD_VA,
     LD_PTBR,
     SNSMUX,
@@ -109,7 +109,7 @@ enum CS_BITS {
     LD_AV,
     CHK_SNS,
     CHK_AV,
-    MDRMUX,
+    MDRMUX1, MDRMUX0,
     CONTROL_STORE_BITS
 } CS_BITS;
 
@@ -165,7 +165,7 @@ int GetVectorMUX(int *x)    { return ((x[VectorMUX1] << 1) + x[VectorMUX0]); }
 int GetGateMAR(int *x)       { return (x[GateMAR]); }
 int GetLDMARMUX(int *x)      { return (x[LDMARMUX]); }
 int GetGateTranslation(int *x) { return (x[GateTranslation]); }
-int GetTranslationMUX(int *x) { return (x[TranslationMUX]); }
+int GetTranslationMUX(int *x) { return ((x[TranslationMUX1] << 1) + x[TranslationMUX0]); }
 int GetLD_VA(int *x)          { return (x[LD_VA]); }
 int GetLD_PTBR(int *x)        { return (x[LD_PTBR]); }
 int GetSNSMUX(int *x)         { return (x[SNSMUX]); }
@@ -173,7 +173,7 @@ int GetLD_SNS(int *x)         { return (x[LD_SNS]); }
 int GetLD_AV(int *x)          { return (x[LD_AV]); }
 int GetCHK_SNS(int *x)        { return (x[CHK_SNS]); }
 int GetCHK_AV(int *x)         { return (x[CHK_AV]); }
-int GetMDRMUX(int *x)         { return (x[MDRMUX]); }
+int GetMDRMUX(int *x)         { return ((x[MDRMUX1] << 1) + x[MDRMUX0]); }
 
 /***************************************************************/
 /* The control store rom.                                      */
@@ -1113,8 +1113,7 @@ void latch_datapath_values() {
     }
 
     if (LD_MV) {
-        NEXT_LATCHES.MV = (((CURRENT_LATCHES.Privilege == 1) && (BUS < 0x03000)) || (((BUS & 0b01) == 1) &&
-                                                                                     (GetDATA_SIZE(CURRENT_LATCHES.MICROINSTRUCTION) == 1)));
+        NEXT_LATCHES.MV = ((((BUS & 0b01) == 1) && (GetDATA_SIZE(CURRENT_LATCHES.MICROINSTRUCTION) == 1)));
     }
 
     if (LD_Priv) {
@@ -1131,30 +1130,45 @@ void latch_datapath_values() {
         if (VectorMUX == 0) {
             NEXT_LATCHES.Vector = CURRENT_LATCHES.INTV;
         } else if (VectorMUX == 1) {
-            NEXT_LATCHES.Vector = 0x04;
+            NEXT_LATCHES.Vector = 0x05;
+        } else if (VectorMUX == 2) {
+            NEXT_LATCHES.Vector = 0x03;
         } else {
-            if (((CURRENT_LATCHES.MAR < 0x03000) && (CURRENT_LATCHES.Privilege)) == 1) {
-                NEXT_LATCHES.Vector = 0x02;
+            if ((((CURRENT_LATCHES.Privilege == 1) && ((CURRENT_LATCHES.MDR & 0b01000) == 0) && (CURRENT_LATCHES.SNS_Saved_Next_State != 28))) == 1) {
+                NEXT_LATCHES.Vector = 0x04;
             } else {
-                NEXT_LATCHES.Vector = 0x03;
+                NEXT_LATCHES.Vector = 0x02;
             }
         }
     }
 
     if (LD_MAR == 1) {
-        NEXT_LATCHES.MAR = BUS;
+        int ldmarmux = GetLDMARMUX(CURRENT_LATCHES.MICROINSTRUCTION);
+        if (ldmarmux == 0) {
+            NEXT_LATCHES.MAR = BUS;
+        } else {
+            NEXT_LATCHES.MAR = (CURRENT_LATCHES.MDR & 0b0011111000000000) + (CURRENT_LATCHES.VA & 0b0111111111);
+        }
     }
 
     if (LD_MDR == 1) {
         int MAR0 = CURRENT_LATCHES.MAR & 0b01;
         int MIO_EN = GetMIO_EN(CURRENT_LATCHES.MICROINSTRUCTION);
         int DATA_SIZE = GetDATA_SIZE((CURRENT_LATCHES.MICROINSTRUCTION));
+        int mdrmux = GetMDRMUX(CURRENT_LATCHES.MICROINSTRUCTION);
 
-        if ((DATA_SIZE == 0) && MIO_EN == 0) { // state 24
-            NEXT_LATCHES.MDR = (BUS & 0x0FF);
-        } else if ((DATA_SIZE == 1) && MIO_EN == 0) { // state 23
-            NEXT_LATCHES.MDR = BUS;
+        if (mdrmux == 0) {
+            if ((DATA_SIZE == 0) && MIO_EN == 0) { // state 24
+                NEXT_LATCHES.MDR = (BUS & 0x0FF);
+            } else if ((DATA_SIZE == 1) && MIO_EN == 0) { // state 23
+                NEXT_LATCHES.MDR = BUS;
+            }
+        } else if (mdrmux == 1) {
+            NEXT_LATCHES.MDR = CURRENT_LATCHES.MDR | 0b01;
+        } else if (mdrmux == 2) {
+            NEXT_LATCHES.MDR = CURRENT_LATCHES.MDR | 0b010;
         }
+
     }
 
     if (LD_IR == 1) {
