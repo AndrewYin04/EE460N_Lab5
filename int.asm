@@ -16,7 +16,7 @@ ADD R6, R6, #-2
 STW R3, R6, #-1
 ADD R6, R6, #-2
 
-LEA R0, PAGETABLE
+LEA R0, PAGETABLE ; x1210
 LDW R0, R0, #0 ; load R0 with the VA of the PT
 LEA R1, NUMOFFSET
 LDW R1, R0, #0 ; load R1 with the number of PTE to loop through
@@ -24,10 +24,10 @@ LDW R1, R0, #0 ; load R1 with the number of PTE to loop through
 ; make R3 = 0b111110
 AND R3, R3, #0
 ADD R3, R3, #1
-NOT R3, R3
+NOT R3, R3 ; x121c
 
 LOOP    ADD R1, R1, #0
-        BRZ END
+        BRZ END ; x1220
         ADD R1, R1, #-1
         LDW R2, R0, #0 ; load PTE into R2
         AND R2, R2, R3 ; clear bit 0 of the PTE (the reference bit)
@@ -37,15 +37,15 @@ LOOP    ADD R1, R1, #0
 
 ; Restore R1 and R0 from the stack
 END LDW R3, R6, #0
-ADD R6, R6, #2
+ADD R6, R6, #2 ; x1230
 LDW R2, R6, #0
 ADD R6, R6, #2
-LDW R1, R6, #0         ; Pop R1 from the stack ; 0x1212
+LDW R1, R6, #0         ; Pop R1 from the stack ; 
 ADD R6, R6, #2
 LDW R0, R6, #0         ; Pop R0 from the stack
-ADD R6, R6, #2                                  ; 0x1218
+ADD R6, R6, #2                                  ; 
 
-RTI
+RTI ; x123e
 
 PAGETABLE .FILL x1000 ; b0001000000000000 ; VA of page table, which is at page 8
 NUMOFFSET .FILL x080 ; decimal 128

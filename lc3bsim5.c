@@ -245,6 +245,8 @@ typedef struct System_Latches_Struct{
     int AV; /* Access violation signal */
     int SNS_Saved_Next_State;
 
+    int tmp_PSR; // jank debugging code... should delete, but snhaww
+
 } System_Latches;
 
 /* Data Structure for Latch */
@@ -287,7 +289,12 @@ void help() {
 /*                                                             */
 /***************************************************************/
 void cycle() {
-
+    if (CYCLE_COUNT == 300) { // timer interrupt
+        CURRENT_LATCHES.INTERRUPT = 1;
+        NEXT_LATCHES.INTERRUPT = 1;
+        NEXT_LATCHES.INTV = 0x01;
+        CURRENT_LATCHES.INTV = 0x01;
+    }
     eval_micro_sequencer();
     cycle_memory();
     eval_bus_drivers();
@@ -633,11 +640,18 @@ void initialize(char *argv[], int num_prog_files) {
     CURRENT_LATCHES.Z = 1;
     CURRENT_LATCHES.STATE_NUMBER = INITIAL_STATE_NUMBER;
     memcpy(CURRENT_LATCHES.MICROINSTRUCTION, CONTROL_STORE[INITIAL_STATE_NUMBER], sizeof(int)*CONTROL_STORE_BITS);
-    CURRENT_LATCHES.SSP = 0x3000; /* Initial value of system stack pointer */
+    // CURRENT_LATCHES.SSP = 0x3000; /* Initial value of system stack pointer */
 
 /* MODIFY: you can add more initialization code HERE */
+    CURRENT_LATCHES.SSP = 0x3000;       /* Initial value of system stack pointer */
+    CURRENT_LATCHES.Saved_SSP = 0x3000; /* Initial value of system stack pointer */
+    CURRENT_LATCHES.Privilege = 0b01;
+    CURRENT_LATCHES.INTERRUPT = 0;
+    CURRENT_LATCHES.MV = 0;
+    CURRENT_LATCHES.AV = 0;
+    CURRENT_LATCHES.SNS_Saved_Next_State = 0;
 
-    NEXT_LATCHES = CURRENT_LATCHES;
+        NEXT_LATCHES = CURRENT_LATCHES;
 
     RUN_BIT = TRUE;
 }
@@ -757,6 +771,7 @@ void eval_micro_sequencer() {
     // load next_latches's microinstruction with the appropriate state
     memcpy(NEXT_LATCHES.MICROINSTRUCTION, CONTROL_STORE[NEXT_LATCHES.STATE_NUMBER], sizeof(int)*CONTROL_STORE_BITS);
 
+    // printf("state: %d | privilege: %d | PC: x%x\n", CURRENT_LATCHES.STATE_NUMBER, CURRENT_LATCHES.Privilege, CURRENT_LATCHES.PC); // todo: delete this
 }
 
 int mem_cycle = 1;
@@ -772,6 +787,10 @@ void cycle_memory() {
     if (GetMIO_EN(CURRENT_LATCHES.MICROINSTRUCTION) == 1) { // if this state accesses memory
         if (mem_cycle == (MEM_CYCLES - 1)) {
             NEXT_LATCHES.READY = 1;
+
+            if (GetJ(CURRENT_LATCHES.MICROINSTRUCTION) == 41) {
+                NEXT_LATCHES.MDR = CURRENT_LATCHES.tmp_PSR; // jank debugged code... should delete, but snaww
+            }
         } else if (mem_cycle == MEM_CYCLES) {
             mem_cycle = 0; // will be incremented to one later
             NEXT_LATCHES.READY = 0; // reset R bit
@@ -926,6 +945,7 @@ void eval_bus_drivers() {
         result = (CURRENT_LATCHES.N << 2) + (CURRENT_LATCHES.Z << 1) + (CURRENT_LATCHES.P) + (CURRENT_LATCHES.Privilege << 15);
 
         BUS = Low16bits(result);
+        NEXT_LATCHES.tmp_PSR = Low16bits(result);
     } else if (Gate_PC_1) {
         BUS = Low16bits(CURRENT_LATCHES.PC - 2);
     } else if (Gate_Vector) {
@@ -1085,6 +1105,8 @@ void latch_datapath_values() {
         int protection = (((CURRENT_LATCHES.Privilege == 1) && ((CURRENT_LATCHES.MDR & 0b01000) == 0) && (CURRENT_LATCHES.SNS_Saved_Next_State != 28))) & 0b01;
         int valid = (!((CURRENT_LATCHES.MDR >> 2) & 0b01)) & 0b01;
         NEXT_LATCHES.AV = protection | valid;
+
+        // printf("av: %d, current privilege: %d\n", NEXT_LATCHES.AV, CURRENT_LATCHES.Privilege); // todo: delete this
     }
 
     if (LD_VA) {
@@ -1127,8 +1149,12 @@ void latch_datapath_values() {
 
     if (LD_Vector) {
         int VectorMUX = GetVectorMUX(CURRENT_LATCHES.MICROINSTRUCTION);
+        int sns = CURRENT_LATCHES.SNS_Saved_Next_State;
+        if ((sns == 41) || (sns == 46) || (sns == 53)) { // don't want to load into Vector reg during context switch
+            return;
+        }
         if (VectorMUX == 0) {
-            NEXT_LATCHES.Vector = CURRENT_LATCHES.INTV;
+            NEXT_LATCHES.Vector = 0x01; // CURRENT_LATCHES.INTV;
         } else if (VectorMUX == 1) {
             NEXT_LATCHES.Vector = 0x05;
         } else if (VectorMUX == 2) {
@@ -1140,6 +1166,8 @@ void latch_datapath_values() {
                 NEXT_LATCHES.Vector = 0x02;
             }
         }
+
+        // printf("state: %d | VectorMUX: %d | NEXT_LATCHES.Vector: %d \n", CURRENT_LATCHES.STATE_NUMBER, VectorMUX, NEXT_LATCHES.Vector); // todo: delete this
     }
 
     if (LD_MAR == 1) {
