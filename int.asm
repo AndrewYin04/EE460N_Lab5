@@ -18,8 +18,8 @@ ADD R6, R6, #-2
 
 LEA R0, PAGETABLE ; x1210
 LDW R0, R0, #0 ; load R0 with the VA of the PT
-LEA R1, NUMOFFSET
-LDW R1, R0, #0 ; load R1 with the number of PTE to loop through
+LEA R1, NUMOFFSETO
+LDW R1, R1, #0 ; load R1 with the number of PTE to loop through
 
 ; make R3 = 0b111110
 AND R3, R3, #0
@@ -43,11 +43,11 @@ ADD R6, R6, #2
 LDW R1, R6, #0         ; Pop R1 from the stack ; 
 ADD R6, R6, #2
 LDW R0, R6, #0         ; Pop R0 from the stack
-ADD R6, R6, #2                                  ; 
+ADD R6, R6, #2                                  ; x123c
 
 RTI ; x123e
 
 PAGETABLE .FILL x1000 ; b0001000000000000 ; VA of page table, which is at page 8
-NUMOFFSET .FILL x080 ; decimal 128
+NUMOFFSETO .FILL #128 ; x0200 ; x080 ; decimal 128
 
 .END
