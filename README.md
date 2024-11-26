@@ -1,2 +1,3 @@
 ﻿# EE460N_Lab5
 this is light workkkk i got 110!!!!
+lowkey some jank code for loading PSR into MDR because the microachitecture was poorly tested (by me) lol...
