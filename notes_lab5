@@ -3,3 +3,11 @@ num cycles till you halt the machine by loading zero to pc in the protection exc
 
 To generate this file, set up the execution scenario described above. Run the user program and dump the memory locations containing the page table once before the 300th cycle, once after the ISR is done, and finally after the protection exception halts the execution of the program (you should get a protection exception after the jump). Also, dump memory location x3814 (corresponding to which virtual address?) and the current registers after the protection exception.
 
+run 300
+mdump 0x1000 0x1100
+run 32363
+mdump 0x1000 0x1100
+go
+mdump 0x1000 0x1100
+mdump 0x3814 0x3814
+rdump
